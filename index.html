@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<><!DOCTYPE html>
 <html>
 <head>
   <meta charset="UTF-8" />
@@ -11,7 +11,8 @@
       margin: 0;
       padding: 0;
       background: black;
-      height: 100vh;      
+      height: 100vh;
+      display: flex;
       align-items: center;
       justify-content: center;
       font-family: sans-serif;
@@ -70,16 +71,25 @@
 
     video {
       width: 100%;
-      
     }
 
-    @media (max-width: 768px) {
+    @media (min-width: 768px) {
       video {
         width: 75%;
       }
     }
 
-    
+    @media (min-width: 1024px) {
+      video {
+        width: 66.666667%;
+      }
+    }
+
+    @media (min-width: 1280px) {
+      video {
+        width: 50%;
+      }
+    }
 
     .channel-list {
       position: absolute;
@@ -345,5 +355,4 @@
   </script>
 </body>
 </html></> /></body></script></body></html></></>
-
 
