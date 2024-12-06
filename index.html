@@ -1,211 +1,356 @@
 <><!DOCTYPE html>
 <html>
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Video Player</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.4.2/shaka-player.compiled.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
+  <title>Video Player</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.4.2/shaka-player.compiled.js"></script>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: black;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: sans-serif;
+    }
+
+    #container {
+      width: 100%;
+      height: 100vh;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .header {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      padding: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.7), transparent);
+      z-index: 10;
+    }
+
+    .controls {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      padding: 1.5rem;
+      background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
+      z-index: 10;
+    }
+
+    .control-buttons {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 2rem;
+    }
+
+    button {
+      background: none;
+      border: none;
+      color: white;
+      cursor: pointer;
+    }
+
+    button:hover {
+      color: #cbd5e0;
+    }
+
+    video {
+      width: 100%;
+    }
+
+    @media (min-width: 768px) {
+      video {
+        width: 75%;
+      }
+    }
+
+    @media (min-width: 1024px) {
+      video {
+        width: 66.666667%;
+      }
+    }
+
+    @media (min-width: 1280px) {
+      video {
+        width: 50%;
+      }
+    }
+
+    .channel-list {
+      position: absolute;
+      left: 1rem;
+      top: 4rem;
+      background: rgba(0,0,0,0.9);
+      border-radius: 0.5rem;
+      padding: 1rem;
+      border: 1px solid #4a5568;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 0.5rem 0.75rem;
+      background: #2d3748;
+      color: white;
+      border: 1px solid #4a5568;
+      border-radius: 0.25rem;
+      margin-bottom: 1rem;
+    }
+
+    .channel-button {
+      width: 100%;
+      text-align: left;
+      padding: 0.5rem 1rem;
+      border-radius: 0.25rem;
+      color: white;
+    }
+
+    .channel-button:hover {
+      background: rgba(255,255,255,0.1);
+    }
+
+    .channel-button.active {
+      background: rgba(255,255,255,0.2);
+    }
+
+    .buffering {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .spinner {
+      height: 3rem;
+      width: 3rem;
+      border-radius: 9999px;
+      border-top: 2px solid white;
+      border-bottom: 2px solid white;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    h1 {
+      color: white;
+      font-weight: bold;
+      margin: 0;
+    }
+
+    .text-2xl {
+      font-size: 1.5rem;
+    }
+
+    .text-3xl {
+      font-size: 1.875rem;
+    }
+  </style>
 </head>
 <body>
-    <div id="container" class="w-full h-screen flex flex-col items-center justify-center bg-black relative">
-        <div class="absolute top-0 left-0 w-full p-4 flex justify-between items-center bg-gradient-to-b from-black/70 to-transparent z-10">
-            <button id="channelListBtn" class="text-white hover:text-gray-300">
-                <i class="fas fa-list text-xl"></i>
-            </button>
-            <h1 id="channelName" class="text-white font-bold">TV 5</h1>
-            <button id="fullscreenBtn" class="text-white hover:text-gray-300">
-                <i class="fas fa-expand text-xl"></i>
-            </button>
-        </div>
-
-        <video id="video" class="w-full md:w-3/4 lg:w-2/3 xl:w-1/2" autoplay playsinline></video>
-
-        <div id="bufferingIndicator" class="absolute inset-0 flex items-center justify-center hidden">
-            <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-white"></div>
-        </div>
-
-        <div class="absolute bottom-0 left-0 w-full p-6 bg-gradient-to-t from-black/70 to-transparent z-10">
-            <div class="flex justify-center items-center gap-8">
-                <button id="prevBtn" class="text-white hover:text-gray-300">
-                    <i class="fas fa-backward text-2xl"></i>
-                </button>
-                <button id="playPauseBtn" class="text-white hover:text-gray-300">
-                    <i class="fas fa-pause text-3xl"></i>
-                </button>
-                <button id="nextBtn" class="text-white hover:text-gray-300">
-                    <i class="fas fa-forward text-2xl"></i>
-                </button>
-            </div>
-        </div>
-
-        <div id="channelList" class="absolute left-4 top-16 bg-black/90 rounded-lg shadow-lg p-4 border border-gray-700 hidden">
-            <input 
-                type="text" 
-                id="searchInput"
-                placeholder="Search channels..." 
-                class="w-full mb-4 px-3 py-2 bg-gray-800 text-white rounded border border-gray-700 focus:outline-none focus:border-white"
-             />
-            <ul id="channelListItems" class="space-y-2">
-                <li>
-                    <button class="w-full text-left px-4 py-2 rounded text-white bg-white/20">TV 5</button>
-                </li>
-                <li>
-                    <button class="w-full text-left px-4 py-2 rounded text-white hover:bg-white/10">GMA</button>
-                </li>
-            </ul>
-        </div>
+  <div id="container">
+    <div class="header">
+      <button onclick="toggleChannels()">
+        <i class="fas fa-list text-2xl"></i>
+      </button>
+      <h1 id="channelName"></h1>
+      <button onclick="toggleFullscreen()">
+        <i class="fas fa-expand text-2xl" id="fullscreenIcon"></i>
+      </button>
     </div>
 
-    <script>
-        const channels = [
-            {
-                name: "TV 5",
-                url: "https://qp-pldt-live-grp-02-prod.akamaized.net/out/u/tv5_hd.mpd",
-                keyId: "2615129ef2c846a9bbd43a641c7303ef",
-                key: "07c7f996b1734ea288641a68e1cfdc4d"
-            },
-            {
-                name: "GMA",
-                url: "https://cdn-uw2-prod.tsv2.amagi.tv/linear/amg01006-abs-cbn-abscbn-gma-x7-dash-abscbnono/7c693236-e0c1-40a3-8bd0-bb25e43f5bfc/index.mpd", 
-                keyId: "c95ed4c44b0b4f7fa1c6ebbbbaab21a1",
-                key: "47635b8e885e19f2ccbdff078c207058"
+    <video id="video" autoplay playsinline></video>
+
+    <div id="buffering" class="buffering" style="display: none">
+      <div class="spinner"></div>
+    </div>
+
+    <div class="controls">
+      <div class="control-buttons">
+        <button onclick="previousChannel()">
+          <i class="fas fa-backward text-2xl"></i>
+        </button>
+        <button onclick="togglePlay()" id="playButton">
+          <i class="fas fa-pause text-3xl"></i>
+        </button>
+        <button onclick="nextChannel()">
+          <i class="fas fa-forward text-2xl"></i>
+        </button>
+      </div>
+    </div>
+
+    <div id="channelList" class="channel-list" style="display: none">
+      <input type="text" 
+             class="search-input" 
+             placeholder="Search channels..."
+             onkeyup="filterChannels(this.value)" />
+      <div id="channelButtons"></div>
+    </div>
+  </div>
+
+  <script>
+    const channels = [
+      {
+        name: "TV 5",
+        url: "https://qp-pldt-live-grp-02-prod.akamaized.net/out/u/tv5_hd.mpd",
+        keyId: "2615129ef2c846a9bbd43a641c7303ef",
+        key: "07c7f996b1734ea288641a68e1cfdc4d",
+      },
+      {
+        name: "GMA",
+        url: "https://myxnola-abscbn-ono.amagi.tv/index.m3u8",
+        keyId: "c95ed4c44b0b4f7fa1c6ebbbbaab21a1",
+        key: "47635b8e885e19f2ccbdff078c207058", 
+      }
+    ];
+
+    let currentChannel = 0;
+    let player = null;
+    let showChannels = false;
+
+    const video = document.getElementById('video');
+    const container = document.getElementById('container');
+    const bufferingDiv = document.getElementById('buffering');
+    const channelNameEl = document.getElementById('channelName');
+    const playButton = document.getElementById('playButton');
+    const fullscreenIcon = document.getElementById('fullscreenIcon');
+    const channelList = document.getElementById('channelList');
+
+    async function initPlayer() {
+      shaka.polyfill.installAll();
+      
+      if (!shaka.Player.isBrowserSupported()) {
+        console.error('Browser not supported');
+        return;
+      }
+
+      try {
+        player = new shaka.Player(video);
+        const channel = channels[currentChannel];
+
+        player.configure({
+          drm: {
+            clearKeys: {
+              [channel.keyId]: channel.key
             }
-        ];
-
-        let currentChannel = 0;
-        let player = null;
-        let isPlaying = true;
-
-        const video = document.getElementById('video');
-        const container = document.getElementById('container');
-        const channelListBtn = document.getElementById('channelListBtn');
-        const channelList = document.getElementById('channelList');
-        const fullscreenBtn = document.getElementById('fullscreenBtn');
-        const playPauseBtn = document.getElementById('playPauseBtn');
-        const prevBtn = document.getElementById('prevBtn');
-        const nextBtn = document.getElementById('nextBtn');
-        const bufferingIndicator = document.getElementById('bufferingIndicator');
-        const searchInput = document.getElementById('searchInput');
-        const channelListItems = document.getElementById('channelListItems');
-        const channelName = document.getElementById('channelName');
-
-        async function initPlayer() {
-            shaka.polyfill.installAll();
-            
-            if (!shaka.Player.isBrowserSupported()) {
-                console.error('Browser not supported');
-                return;
+          },
+          abr: {
+            enabled: true,
+            restrictions: {
+              maxHeight: 1080
             }
-
-            try {
-                player = new shaka.Player(video);
-                
-                const channel = channels[currentChannel];
-                
-                player.configure({
-                    drm: {
-                        clearKeys: {
-                            [channel.keyId]: channel.key
-                        }
-                    },
-                    abr: {
-                        enabled: true,
-                        restrictions: {
-                            maxHeight: 1080
-                        }
-                    },
-                    streaming: {
-                        rebufferingGoal: 2,
-                        bufferingGoal: 10,
-                        bufferBehind: 30
-                    }
-                });
-
-                await player.load(channel.url);
-                channelName.textContent = channel.name;
-                
-                video.play().catch(error => {
-                    console.error('Autoplay failed:', error);
-                });
-            } catch (error) {
-                console.error('Error loading player:', error);
-            }
-        }
-
-        async function changeChannel(index) {
-            if (player) {
-                await player.destroy();
-                player = null;
-            }
-            currentChannel = index;
-            initPlayer();
-            channelList.classList.add('hidden');
-        }
-
-        channelListBtn.addEventListener('click', () => {
-            channelList.classList.toggle('hidden');
+          },
+          streaming: {
+            rebufferingGoal: 2,
+            bufferingGoal: 10,
+            bufferBehind: 30
+          }
         });
 
-        fullscreenBtn.addEventListener('click', () => {
-            if (!document.fullscreenElement) {
-                container.requestFullscreen();
-                fullscreenBtn.querySelector('i').classList.replace('fa-expand', 'fa-compress');
-            } else {
-                document.exitFullscreen();
-                fullscreenBtn.querySelector('i').classList.replace('fa-compress', 'fa-expand');
-            }
-        });
+        await player.load(channel.url);
+        channelNameEl.textContent = channel.name;
 
-        playPauseBtn.addEventListener('click', () => {
-            if (video.paused) {
-                video.play();
-                playPauseBtn.querySelector('i').classList.replace('fa-play', 'fa-pause');
-            } else {
-                video.pause();
-                playPauseBtn.querySelector('i').classList.replace('fa-pause', 'fa-play');
-            }
+        video.play().catch(error => {
+          console.error('Autoplay failed:', error);
         });
+      } catch (error) {
+        console.error('Error loading player:', error);
+      }
+    }
 
-        prevBtn.addEventListener('click', () => {
-            const newIndex = (currentChannel - 1 + channels.length) % channels.length;
-            changeChannel(newIndex);
-        });
+    function togglePlay() {
+      if (video.paused) {
+        video.play();
+        playButton.innerHTML = '<i class="fas fa-pause text-3xl"></i>';
+      } else {
+        video.pause();
+        playButton.innerHTML = '<i class="fas fa-play text-3xl"></i>';
+      }
+    }
 
-        nextBtn.addEventListener('click', () => {
-            const newIndex = (currentChannel + 1) % channels.length;
-            changeChannel(newIndex);
-        });
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        container.requestFullscreen();
+        fullscreenIcon.className = 'fas fa-compress text-2xl';
+      } else {
+        document.exitFullscreen();
+        fullscreenIcon.className = 'fas fa-expand text-2xl';
+      }
+    }
 
-        video.addEventListener('waiting', () => {
-            bufferingIndicator.classList.remove('hidden');
-        });
+    async function changeChannel(index) {
+      if (player) {
+        await player.destroy();
+        player = null;
+      }
+      currentChannel = index;
+      initPlayer();
+      channelList.style.display = 'none';
+    }
 
-        video.addEventListener('playing', () => {
-            bufferingIndicator.classList.add('hidden');
-        });
+    async function nextChannel() {
+      await changeChannel((currentChannel + 1) % channels.length);
+    }
 
-        searchInput.addEventListener('input', (e) => {
-            const query = e.target.value.toLowerCase();
-            const filteredChannels = channels.filter(channel => 
-                channel.name.toLowerCase().includes(query)
-            );
-            
-            channelListItems.innerHTML = filteredChannels.map((channel, index) => `
-                <li>
-                    <button 
-                        onclick="changeChannel(${index})"
-                        class="w-full text-left px-4 py-2 rounded text-white ${currentChannel === index ? 'bg-white/20' : 'hover:bg-white/10'}"
-                    >
-                        ${channel.name}
-                    </button>
-                </li>
-            `).join('');
-        });
+    async function previousChannel() {
+      await changeChannel((currentChannel - 1 + channels.length) % channels.length);
+    }
 
-        initPlayer();
-    </script>
+    function toggleChannels() {
+      showChannels = !showChannels;
+      channelList.style.display = showChannels ? 'block' : 'none';
+      renderChannelList();
+    }
+
+    function filterChannels(query) {
+      const filtered = channels.filter(channel => 
+        channel.name.toLowerCase().includes(query.toLowerCase())
+      );
+      renderChannelList(filtered);
+    }
+
+    function renderChannelList(channelsToRender = channels) {
+      const buttonsContainer = document.getElementById('channelButtons');
+      buttonsContainer.innerHTML = '';
+      
+      channelsToRender.forEach((channel, index) => {
+        const button = document.createElement('button');
+        button.className = `channel-button ${currentChannel === index ? 'active' : ''}`;
+        button.textContent = channel.name;
+        button.onclick = () => changeChannel(index);
+        buttonsContainer.appendChild(button);
+      });
+    }
+
+    video.addEventListener('waiting', () => bufferingDiv.style.display = 'flex');
+    video.addEventListener('playing', () => bufferingDiv.style.display = 'none');
+    video.addEventListener('play', () => playButton.innerHTML = '<i class="fas fa-pause text-3xl"></i>');
+    video.addEventListener('pause', () => playButton.innerHTML = '<i class="fas fa-play text-3xl"></i>');
+
+    document.addEventListener('fullscreenchange', () => {
+      fullscreenIcon.className = document.fullscreenElement ? 
+        'fas fa-compress text-2xl' : 
+        'fas fa-expand text-2xl';
+    });
+
+    initPlayer();
+  </script>
 </body>
 </html></> /></body></script></body></html></></>
 
